@@ -6,7 +6,7 @@
                 <enabled>0</enabled>
             </general>
             <cron>
-                <flush_schedule>*/5 * * * *</flush_schedule>
+                <flush_schedule>*/15 * * * *</flush_schedule>
             </cron>
         </samjuk_cache_debounce>
     </default>

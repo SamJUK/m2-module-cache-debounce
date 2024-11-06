@@ -1,16 +1,25 @@
 name: Continuous Integration
 
-on: push
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
-  
   static-tests:
     name: Composer Manifest Validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+
       - name: Validate Manifest
         run: composer validate
+
+      - name: Validate XML format
+        run: sudo apt-get install xmllint -y && find . -type f -name '*.xml' -exec xmllint --noout {} +
 
   tests:
     name: Tests

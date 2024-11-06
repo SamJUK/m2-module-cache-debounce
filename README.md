@@ -1,13 +1,29 @@
 # SamJUK_CacheDebounce
 
+[![CI Workflow Status](https://github.com/samjuk/m2-module-cache-debounce/actions/workflows/ci.yml/badge.svg)](https://github.com/SamJUK/m2-module-cache-debounce/actions/workflows/ci.yml) [![GitHub Release](https://img.shields.io/github/v/release/SamJUK/m2-module-cache-debounce?label=Latest%20Release&logo=github)](https://github.com/SamJUK/m2-module-cache-debounce/releases)
+
 This module debounces/defers/delays FPC cache purge requests to occur on a set schedule. Allowing you to make a trade off between cache accuracy and backend load.
 
 Particularly useful for a ERP solutions that like to issue significant stock updates, in turn flushing cache regularly especially for common parent categories.
 
+If you require a more aggressive solution, such as disabling Cache Flushes entirely then [Hypershop_SpikePerformance](https://github.com/hypershopbv/Hypershop_SpikePerformance) might be a better solution for you.
+
+
+## Proof Of Concept
+
+The module was tested on a fresh Luma store with Sample Data, running on CPX31 VPS (4vCPU, 8GB Memory). 
+
+Traffic was generated via a golang based sitemap crawler running back to back.
+
+A stock management integration was mocked by, setting a random QTY on a random Sku every 1 second via the PUT StockItems route.
+
+![Before and After Metrics for a POC store](./.github/poc.png)
+
+
 ## Installation
 ```sh
 composer config repositories.samjuk-m2-module-cache-debounce vcs git@github.com:SamJUK/m2-module-cache-debounce.git
-composer require samjuk/m2-module-cache-debounce
+composer require samjuk/m2-module-cache-debounce:@dev
 php bin/magento setup:upgrade && php bin/magento cache:flush
 ```
 

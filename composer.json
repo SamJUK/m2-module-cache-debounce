@@ -1,6 +1,6 @@
 {
     "name": "samjuk/m2-module-cache-debounce",
-    "description": "Debounce FPC cache purges to a set interval",
+    "description": "Debounce FPC cache purges to a set schedule",
     "type": "magento2-module",
     "require": {
       "php": "^7.0|^8.0"
