@@ -19,7 +19,7 @@ jobs:
         run: composer validate
 
       - name: Validate XML format
-        run: sudo apt-get install xmllint -y && find . -type f -name '*.xml' -exec xmllint --noout {} +
+        run: sudo apt-get install libxml2-utils -y && find . -type f -name '*.xml' -exec xmllint --noout {} +
 
   tests:
     name: Tests
