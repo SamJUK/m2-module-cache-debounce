@@ -1,0 +1,19 @@
+{
+    "name": "samjuk/m2-module-cache-debounce",
+    "description": "Debounce FPC cache purges to a set interval",
+    "type": "magento2-module",
+    "require": {
+      "php": "^7.0|^8.0"
+    },
+    "license": ["MIT"],
+    "autoload": {
+      "files": ["registration.php"],
+      "psr-4": {
+        "SamJUK\\CacheDebounce\\": ""
+      }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5",
+        "phpstan/phpstan": "^1.12"
+    }
+}

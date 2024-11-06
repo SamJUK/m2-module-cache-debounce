@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <job name="samjuk_cache_debounce_flush" instance="SamJUK\CacheDebounce\Cron\Flush" method="execute">
+            <config_path>samjuk_cache_debounce/cron/flush_schedule</config_path>
+        </job>
+     </group>
+</config>

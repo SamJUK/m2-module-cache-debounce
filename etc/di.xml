@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\CacheInvalidate\Model\PurgeCache">
+        <plugin name="samjuk_cachedebounce_purge_cache" type="SamJUK\CacheDebounce\Plugin\PurgeCache" />
+    </type>
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="samjuk_cache_debounce_flush" xsi:type="object">SamJUK\CacheDebounce\Console\Command\Flush</item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

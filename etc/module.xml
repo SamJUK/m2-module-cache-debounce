@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noTestSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+  <module name="SamJUK_CacheDebounce">
+    <sequence>
+    </sequence>
+  </module>
+</config>
