@@ -25,7 +25,7 @@ class PurgeCacheTest extends TestCase
 
         $purgeCachePlugin->aroundSendPurgeRequest(
             $purgeCacheModel,
-            $purgeCacheModel->sendPurgeRequest(...),
+            [$purgeCacheModel, 'sendPurgeRequest'],
             ["cat_c_2", "cat_c_3"]
         );
     }
@@ -45,7 +45,7 @@ class PurgeCacheTest extends TestCase
 
         $purgeCachePlugin->aroundSendPurgeRequest(
             $purgeCacheModel,
-            $purgeCacheModel->sendPurgeRequest(...),
+            [$purgeCacheModel, 'sendPurgeRequest'],
             ["cat_c_2", "cat_c_3"]
         );
     }
