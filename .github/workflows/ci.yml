@@ -10,7 +10,7 @@ on:
 
 jobs:
   static-tests:
-    name: Composer Manifest Validation
+    name: Validate Format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -62,3 +62,6 @@ jobs:
 
       - name: Code Compilation Test
         run: docker exec magento-project-community-edition bash -c "php bin/magento setup:di:compile"
+
+      - name: Run Integration Tests
+        run: docker exec magento-project-community-edition bash -c "php bin/magento deploy:mode:set developer && cd /data/dev/tests/integration/ && ../../../vendor/bin/phpunit"

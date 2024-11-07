@@ -1,5 +1,6 @@
 MAKEFLAGS += --always-make
 .DEFAULT_GOAL := help
+SHELL:=/bin/bash
 
 
 # Assuming the project is located within app/code/<vendor>/<module>
@@ -33,13 +34,9 @@ test-phpstan:
 test-unit:
 	${RELATIVE_PROJECT_DIR}/vendor/bin/phpunit ${MODULE_DIR}/Test/Unit
 
+
 test-integration:
-	echo "!!! NOT IMPLEMENTED !!!"
-
-
-
-
-
+	cd ${RELATIVE_PROJECT_DIR} && php bin/magento deploy:mode:set developer && cd /data/dev/tests/integration/ && ../../../vendor/bin/phpunit
 
 ##
 # HELP

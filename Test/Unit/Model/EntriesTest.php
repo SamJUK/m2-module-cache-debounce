@@ -22,7 +22,7 @@ class EntriesTest extends TestCase
         $this->select = $this->createMock(\Magento\Framework\DB\Select::class);
         $this->select->method('from')->willReturn($this->select);
         $this->select->method('distinct')->willReturn($this->select);
-        $this->connection = $this->createMock(\Magento\Framework\DB\Adapter\Pdo\Mysql::class);
+        $this->connection = $this->createMock(\Magento\Framework\DB\Adapter\AdapterInterface::class);
         $this->connection->method('select')->willReturn($this->select);
         $this->cacheDebounceConfig = $this->createMock(\SamJUK\CacheDebounce\Model\Config::class);
         $this->resourceConnection = $this->createMock(\Magento\Framework\App\ResourceConnection::class);
@@ -35,21 +35,6 @@ class EntriesTest extends TestCase
             $this->resourceConnection,
             $this->loggerInterface
         );
-    }
-
-    public function testAddNewTag()
-    {
-        // $this->cacheDebounceEntries->add([
-        //     'cat_c_2',
-        //     'cat_c_3',
-        //     'cat_p_3'
-        // ]);
-        $this->assertTrue(true);
-    }
-
-    public function testGetAllTags()
-    {
-        $this->assertTrue(true);
     }
 
     public function testFlushTags()
