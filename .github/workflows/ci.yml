@@ -34,7 +34,7 @@ jobs:
             MAGENTO_VERSION: 2.4.6-p8
           - PHP_VERSION: php81-fpm
             MAGENTO_VERSION: 2.4.5-p10
-          - PHP_VERSION: php74-fpm      # @TODO: 8.1 is missing from upstream containers despite being the only supported version for 2.4.4
+          - PHP_VERSION: php81-fpm
             MAGENTO_VERSION: 2.4.4-p11
           - PHP_VERSION: php74-fpm
             MAGENTO_VERSION: 2.4.3-p2   # @TODO: -p3 missing from upstream containers
