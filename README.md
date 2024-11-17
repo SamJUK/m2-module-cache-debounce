@@ -1,6 +1,6 @@
 # SamJUK_CacheDebounce
 
-[![CI Workflow Status](https://github.com/samjuk/m2-module-cache-debounce/actions/workflows/ci.yml/badge.svg)](https://github.com/SamJUK/m2-module-cache-debounce/actions/workflows/ci.yml) [![GitHub Release](https://img.shields.io/github/v/release/SamJUK/m2-module-cache-debounce?label=Latest%20Release&logo=github)](https://github.com/SamJUK/m2-module-cache-debounce/releases)
+[![Supported Magento Versions](https://img.shields.io/badge/magento-2.4.3%E2%80%932.4.7-orange.svg?logo=magento)](https://github.com/SamJUK/m2-module-cache-debounce/actions/workflows/ci.yml) [![CI Workflow Status](https://github.com/samjuk/m2-module-cache-debounce/actions/workflows/ci.yml/badge.svg)](https://github.com/SamJUK/m2-module-cache-debounce/actions/workflows/ci.yml) [![GitHub Release](https://img.shields.io/github/v/release/SamJUK/m2-module-cache-debounce?label=Latest%20Release&logo=github)](https://github.com/SamJUK/m2-module-cache-debounce/releases)
 
 This module debounces/defers/delays FPC cache purge requests to occur on a set schedule. Allowing you to make a trade off between cache accuracy and backend load.
 
@@ -11,7 +11,7 @@ If you require a more aggressive solution, such as disabling Cache Flushes entir
 
 ## Proof Of Concept
 
-The module was tested on a fresh Luma store with Sample Data, running on CPX31 VPS (4vCPU, 8GB Memory). 
+The module was tested on a fresh Luma store with Sample Data, running on CPX31 VPS (4vCPU, 8GB Memory).
 
 Traffic was generated via a golang based sitemap crawler running back to back.
 
@@ -30,7 +30,7 @@ php bin/magento setup:upgrade && php bin/magento cache:flush
 ## Configuration
 Configuration can be handled via System configuration, from within the Cache Debounce menu of the SamJUK Tab.
 
-Or can be set via the CLI with the command 
+Or can be set via the CLI with the command
 ```sh
 php bin/magento config:set <path> <value>
 ```
@@ -44,7 +44,7 @@ Flush Schedule | `samjuk_cache_debounce/cron/flush_schedule` | `*/5 0 0 0 0` | C
 
 The performance improvement comes from improving cache performance by reducing the amount of cache purge requests in turn reducing system load.
 
-To check how many cache invalidations your system is issuing, you can enable debug logging, which will add some `cache invalidate` entries to your `var/log/debug.log` file. 
+To check how many cache invalidations your system is issuing, you can enable debug logging, which will add some `cache invalidate` entries to your `var/log/debug.log` file.
 
 ```sh
 php bin/magento setup:config:set --enable-debug-logging=true && php bin/magento cache:flush
