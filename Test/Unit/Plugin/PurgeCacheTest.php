@@ -1,10 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace SamJUK\CacheDebounce\Test\Unit\Plugin;
 
 use PHPUnit\Framework\TestCase;
 use SamJUK\CacheDebounce\Model\Config as CacheDebounceConfig;
-use SamJUK\CacheDebounce\Model\Entries as CacheDebounceEntries;
+use SamJUK\CacheDebounce\Api\QueueInterface;
 use SamJUK\CacheDebounce\Plugin\PurgeCache as PurgeCachePlugin;
 use Magento\CacheInvalidate\Model\PurgeCache as PurgeCacheModel;
 
@@ -14,8 +16,8 @@ class PurgeCacheTest extends TestCase
     {
         $purgeCacheModel = $this->createMock(PurgeCacheModel::class);
         $cacheDebounceConfig = $this->createMock(CacheDebounceConfig::class);
-        $cacheDebounceEntries = $this->createMock(CacheDebounceEntries::class);
-        $purgeCachePlugin = new PurgeCachePlugin($cacheDebounceConfig, $cacheDebounceEntries);
+        $queue = $this->createMock(QueueInterface::class);
+        $purgeCachePlugin = new PurgeCachePlugin($cacheDebounceConfig, $queue);
 
         $cacheDebounceConfig->method('shouldDebouncePurgeRequest')
             ->willReturn(true);
@@ -34,8 +36,8 @@ class PurgeCacheTest extends TestCase
     {
         $purgeCacheModel = $this->createMock(PurgeCacheModel::class);
         $cacheDebounceConfig = $this->createMock(CacheDebounceConfig::class);
-        $cacheDebounceEntries = $this->createMock(CacheDebounceEntries::class);
-        $purgeCachePlugin = new PurgeCachePlugin($cacheDebounceConfig, $cacheDebounceEntries);
+        $queue = $this->createMock(QueueInterface::class);
+        $purgeCachePlugin = new PurgeCachePlugin($cacheDebounceConfig, $queue);
 
         $cacheDebounceConfig->method('shouldDebouncePurgeRequest')
             ->willReturn(false);

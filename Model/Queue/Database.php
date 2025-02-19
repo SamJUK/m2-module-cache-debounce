@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace SamJUK\CacheDebounce\Model;
+namespace SamJUK\CacheDebounce\Model\Queue;
 
+use SamJUK\CacheDebounce\Api\QueueInterface;
 use SamJUK\CacheDebounce\Model\Config;
 use Magento\CacheInvalidate\Model\PurgeCache;
 use Magento\Framework\App\ResourceConnection;
 use Psr\Log\LoggerInterface;
 
-class Entries
+class Database implements QueueInterface
 {
     /** @var string $tableName */
     private $tableName;
@@ -40,7 +41,7 @@ class Entries
     }
 
     /**
-     * Add new tags to the purge queue
+     * {@inheritDoc}
      */
     public function add(array $tags) : void
     {
@@ -49,7 +50,7 @@ class Entries
     }
 
     /**
-     * Get all tags from the purge queue
+     * {@inheritDoc}
      */
     public function get() : array
     {
@@ -59,7 +60,7 @@ class Entries
     }
 
     /**
-     * Purge all queued tags, and clear the queue
+     * {@inheritDoc}
      */
     public function flush() : void
     {

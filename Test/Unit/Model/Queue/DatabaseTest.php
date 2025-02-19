@@ -1,11 +1,13 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace SamJUK\CacheDebounce\Test\Unit\Model;
+declare(strict_types=1);
+
+namespace SamJUK\CacheDebounce\Test\Unit\Model\Queue;
 
 use PHPUnit\Framework\TestCase;
-use SamJUK\CacheDebounce\Model\Entries as CacheDebounceEntries;
+use SamJUK\CacheDebounce\Model\Queue\Database as DatabaseQueue;
 
-class EntriesTest extends TestCase
+class DatabaseTest extends TestCase
 {
     private const CACHE_TAGS = ['cat_c_1', 'cat_c_2', 'cat_c_p_1'];
 
@@ -14,7 +16,7 @@ class EntriesTest extends TestCase
     private $connection;
     private $resourceConnection;
     private $loggerInterface;
-    private $cacheDebounceEntries;
+    private $databaseQueue;
     private $select;
 
     protected function setUp(): void
@@ -29,7 +31,7 @@ class EntriesTest extends TestCase
         $this->resourceConnection->method('getConnection')->willReturn($this->connection);
         $this->purgeCacheModel = $this->createMock(\Magento\CacheInvalidate\Model\PurgeCache::class);
         $this->loggerInterface = $this->createMock(\Psr\Log\LoggerInterface::class);
-        $this->cacheDebounceEntries = new CacheDebounceEntries(
+        $this->databaseQueue = new DatabaseQueue(
             $this->cacheDebounceConfig,
             $this->purgeCacheModel,
             $this->resourceConnection,
@@ -47,6 +49,6 @@ class EntriesTest extends TestCase
             ->method('sendPurgeRequest')
             ->with([self::CACHE_TAGS]);
 
-        $this->cacheDebounceEntries->flush();
+        $this->databaseQueue->flush();
     }
 }
