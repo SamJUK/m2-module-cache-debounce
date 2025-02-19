@@ -32,6 +32,10 @@ class PurgeCache
             return $proceed($tags);
         }
 
+        if (is_string($tags)) {
+            $tags = [$tags];
+        }
+
         $this->cacheDebouncedEntries->add($tags);
         return true;
     }
