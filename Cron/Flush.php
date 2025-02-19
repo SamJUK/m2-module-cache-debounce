@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace SamJUK\CacheDebounce\Cron;
 
@@ -15,8 +17,8 @@ class Flush
         $this->cacheDebouncedEntries = $cacheDebouncedEntries;
     }
 
-    public function execute()
+    public function execute() : void
     {
-        return $this->cacheDebouncedEntries->flush();
+        $this->cacheDebouncedEntries->flush();
     }
 }
