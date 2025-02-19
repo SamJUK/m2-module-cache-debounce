@@ -8,21 +8,21 @@ use Magento\Framework\Exception\LocalizedException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use SamJUK\CacheDebounce\Model\Entries as CacheDebouncedEntries;
+use SamJUK\CacheDebounce\Api\QueueInterface;
 
 class Flush extends Command
 {
-    private $cacheDebouncedEntries;
+    private $queue;
 
     /**
-     * @param CacheDebouncedEntries $cacheDebouncedEntries
+     * @param QueueInterface $queue
      * @param string|null $name
      */
     public function __construct(
-        CacheDebouncedEntries $cacheDebouncedEntries,
+        QueueInterface $queue,
         $name = null
     ) {
-        $this->cacheDebouncedEntries = $cacheDebouncedEntries;
+        $this->queue = $queue;
         parent::__construct($name);
     }
 
@@ -37,7 +37,7 @@ class Flush extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $this->cacheDebouncedEntries->flush();
+            $this->queue->flush();
             $output->writeln('<info>Flushed Debounced Cache Purges.</info>');
             return 0;
         } catch (LocalizedException $e) {

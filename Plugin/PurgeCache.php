@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace SamJUK\CacheDebounce\Plugin;
 
 use SamJUK\CacheDebounce\Model\Config;
-use SamJUK\CacheDebounce\Model\Entries as CacheDebounceEntries;
+use SamJUK\CacheDebounce\Api\QueueInterface;
 use Magento\CacheInvalidate\Model\PurgeCache as Subject;
 
 class PurgeCache
@@ -13,15 +13,15 @@ class PurgeCache
     /** @var Config $config **/
     private $config;
 
-    /** @var CacheDebounceEntries $cacheDebouncedEntries */
-    private $cacheDebouncedEntries;
+    /** @var QueueInterface $queue */
+    private $queue;
 
     public function __construct(
         Config $config,
-        CacheDebounceEntries $cacheDebounceEntries
+        QueueInterface $queue
     ) {
         $this->config = $config;
-        $this->cacheDebouncedEntries = $cacheDebounceEntries;
+        $this->queue = $queue;
     }
 
     /**
@@ -42,7 +42,7 @@ class PurgeCache
             $tags = [$tags];
         }
 
-        $this->cacheDebouncedEntries->add($tags);
+        $this->queue->add($tags);
         return true;
     }
 }
