@@ -41,7 +41,8 @@ class PurgeCacheTest extends TestCase
             ->willReturn(false);
 
         $purgeCacheModel->expects($this->once())
-            ->method('sendPurgeRequest');
+            ->method('sendPurgeRequest')
+            ->willReturn(true);
 
         $purgeCachePlugin->aroundSendPurgeRequest(
             $purgeCacheModel,

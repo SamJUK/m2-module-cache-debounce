@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace SamJUK\CacheDebounce\Model;
 
@@ -7,39 +9,55 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 class Config
 {
     private const XML_PATH_GENERAL_ENABLED = 'samjuk_cache_debounce/general/enabled';
-    private const XML_PATH_CRON_FLUSH = 'samjuk_cache_debounce/cron/flush';
 
+    /** @var bool $shouldDebouncePurgeRequest */
     private $shouldDebouncePurgeRequest = true;
 
+    /** @var ScopeConfigInterface $scopeConfig */
     private $scopeConfig;
-    
+
     public function __construct(
         ScopeConfigInterface $scopeConfig
     ) {
         $this->scopeConfig = $scopeConfig;
     }
 
-    public function isModuleEnabled()
+    /**
+     * Check if the module feature flag is enabled
+     */
+    public function isModuleEnabled() : bool
     {
         return $this->getFlag(self::XML_PATH_GENERAL_ENABLED);
     }
 
-    public function shouldDebouncePurgeRequest()
+    /**
+     * Check if we should debounce this purge request
+     */
+    public function shouldDebouncePurgeRequest() : bool
     {
         return $this->isModuleEnabled() && $this->shouldDebouncePurgeRequest;
     }
 
-    public function setShouldDebouncePurgeRequest($state)
+    /**
+     * Set flag to allow skipping the debounce (for flush workflows)
+     */
+    public function setShouldDebouncePurgeRequest(bool $state) : void
     {
         $this->shouldDebouncePurgeRequest = $state;
     }
 
-    private function getFlag($path, $scope = 'default', $scopeCode = null)
+    /**
+     * Fetch a system config flag
+     */
+    private function getFlag(string $path, ?string $scope = 'default', ?string $scopeCode = null) : bool
     {
         return (bool)$this->scopeConfig->isSetFlag($path, $scope, $scopeCode);
     }
 
-    private function getValue($path, $scope = 'default', $scopeCode = null)
+    /**
+     * Fetch a system config value
+     */
+    private function getValue(string $path, ?string $scope = 'default', ?string $scopeCode = null)
     {
         return $this->scopeConfig->getValue($path, $scope, $scopeCode);
     }
