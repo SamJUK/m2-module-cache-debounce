@@ -3,6 +3,8 @@
   <module name="SamJUK_CacheDebounce">
     <sequence>
       <module name="Magento_CacheInvalidate"/>
+      <module name="Magento_Backend" />
+      <module name="Magento_Store" />
     </sequence>
   </module>
 </config>
