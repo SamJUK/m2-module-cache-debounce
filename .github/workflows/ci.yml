@@ -28,14 +28,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - PHP_VERSION: php84-fpm
+            MAGENTO_VERSION: 2.4.8
           - PHP_VERSION: php83-fpm
-            MAGENTO_VERSION: 2.4.7-p3
+            MAGENTO_VERSION: 2.4.7-p5
           - PHP_VERSION: php82-fpm
-            MAGENTO_VERSION: 2.4.6-p8
+            MAGENTO_VERSION: 2.4.6-p10
           - PHP_VERSION: php81-fpm
-            MAGENTO_VERSION: 2.4.5-p10
+            MAGENTO_VERSION: 2.4.5-p12
           - PHP_VERSION: php81-fpm
-            MAGENTO_VERSION: 2.4.4-p11
+            MAGENTO_VERSION: 2.4.4-p13
           - PHP_VERSION: php74-fpm
             MAGENTO_VERSION: 2.4.3-p2   # @TODO: -p3 missing from upstream containers
     runs-on: ubuntu-latest
