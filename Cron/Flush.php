@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace SamJUK\CacheDebounce\Cron;
 
-use SamJUK\CacheDebounce\Model\Entries as CacheDebouncedEntries;
+use SamJUK\CacheDebounce\Api\QueueInterface;
 
 class Flush
 {
-    /** @var CacheDebouncedEntries $cacheDebouncedEntries */
-    private $cacheDebouncedEntries;
+    /** @var QueueInterface $queue */
+    private $queue;
 
     public function __construct(
-        CacheDebouncedEntries $cacheDebouncedEntries
+        QueueInterface $queue
     ) {
-        $this->cacheDebouncedEntries = $cacheDebouncedEntries;
+        $this->queue = $queue;
     }
 
     public function execute() : void
     {
-        $this->cacheDebouncedEntries->flush();
+        $this->queue->flush();
     }
 }
