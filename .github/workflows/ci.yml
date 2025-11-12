@@ -29,13 +29,13 @@ jobs:
       matrix:
         include:
           - PHP_VERSION: php84-fpm
-            MAGENTO_VERSION: 2.4.8
+            MAGENTO_VERSION: 2.4.8-p3
           - PHP_VERSION: php83-fpm
-            MAGENTO_VERSION: 2.4.7-p5
+            MAGENTO_VERSION: 2.4.7-p8
           - PHP_VERSION: php82-fpm
-            MAGENTO_VERSION: 2.4.6-p10
+            MAGENTO_VERSION: 2.4.6-p13
           - PHP_VERSION: php81-fpm
-            MAGENTO_VERSION: 2.4.5-p12
+            MAGENTO_VERSION: 2.4.5-p14
           - PHP_VERSION: php81-fpm
             MAGENTO_VERSION: 2.4.4-p13
           - PHP_VERSION: php74-fpm
