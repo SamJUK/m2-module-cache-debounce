@@ -22,7 +22,6 @@ A stock management integration was mocked by, setting a random QTY on a random S
 
 ## Installation
 ```sh
-composer config repositories.samjuk-m2-module-cache-debounce vcs git@github.com:SamJUK/m2-module-cache-debounce.git
 composer require samjuk/m2-module-cache-debounce:@dev
 php bin/magento setup:upgrade && php bin/magento cache:flush
 ```
