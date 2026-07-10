@@ -49,4 +49,32 @@ class EntriesTest extends TestCase
 
         $this->cacheDebounceEntries->flush();
     }
+
+    public function testFlushResetsDebounceFlagEvenWhenPurgeRequestThrows()
+    {
+        $scopeConfig = $this->createMock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
+        $scopeConfig->method('isSetFlag')->willReturn(true);
+        $config = new \SamJUK\CacheDebounce\Model\Config($scopeConfig);
+
+        $this->connection->method('fetchCol')->willReturn(self::CACHE_TAGS);
+        $this->purgeCacheModel->method('sendPurgeRequest')->willThrowException(new \RuntimeException('varnish down'));
+
+        $entries = new CacheDebounceEntries(
+            $config,
+            $this->purgeCacheModel,
+            $this->resourceConnection,
+            $this->loggerInterface
+        );
+
+        $this->assertTrue($config->shouldDebouncePurgeRequest());
+
+        try {
+            $entries->flush();
+            $this->fail('Expected sendPurgeRequest exception to propagate');
+        } catch (\RuntimeException $e) {
+            // expected
+        }
+
+        $this->assertTrue($config->shouldDebouncePurgeRequest());
+    }
 }
