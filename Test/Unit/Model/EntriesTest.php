@@ -75,9 +75,9 @@ class EntriesTest extends TestCase
             // expected
         }
 
-        $this->assertTrue($config->shouldDebouncePurgeRequest()); 
+        $this->assertTrue($config->shouldDebouncePurgeRequest());
     }
-  
+
     public function testAddWithEmptyTagsDoesNotTouchConnection()
     {
         $this->connection->expects($this->never())->method('insertArray');
