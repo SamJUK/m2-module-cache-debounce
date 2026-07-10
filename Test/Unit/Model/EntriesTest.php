@@ -45,7 +45,28 @@ class EntriesTest extends TestCase
 
         $this->purgeCacheModel->expects($this->once())
             ->method('sendPurgeRequest')
-            ->with([self::CACHE_TAGS]);
+            ->with([self::CACHE_TAGS])
+            ->willReturn(true);
+
+        $this->connection->expects($this->once())->method('delete');
+
+        $this->cacheDebounceEntries->flush();
+    }
+
+    public function testFlushDoesNotClearQueueWhenPurgeRequestFails()
+    {
+        $this->connection->method('fetchCol')->willReturn([
+            self::CACHE_TAGS
+        ]);
+
+        $this->purgeCacheModel->expects($this->once())
+            ->method('sendPurgeRequest')
+            ->with([self::CACHE_TAGS])
+            ->willReturn(false);
+
+        $this->connection->expects($this->never())->method('delete');
+
+        $this->loggerInterface->expects($this->once())->method('error');
 
         $this->cacheDebounceEntries->flush();
     }
