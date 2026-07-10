@@ -49,4 +49,20 @@ class EntriesTest extends TestCase
 
         $this->cacheDebounceEntries->flush();
     }
+
+    public function testAddWithEmptyTagsDoesNotTouchConnection()
+    {
+        $this->connection->expects($this->never())->method('insertArray');
+
+        $this->cacheDebounceEntries->add([]);
+    }
+
+    public function testAddWithTagsInsertsThem()
+    {
+        $this->connection->expects($this->once())
+            ->method('insertArray')
+            ->with($this->anything(), ['tag'], self::CACHE_TAGS);
+
+        $this->cacheDebounceEntries->add(self::CACHE_TAGS);
+    }
 }
