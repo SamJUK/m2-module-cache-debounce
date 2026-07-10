@@ -53,12 +53,4 @@ class Config
     {
         return (bool)$this->scopeConfig->isSetFlag($path, $scope, $scopeCode);
     }
-
-    /**
-     * Fetch a system config value
-     */
-    private function getValue(string $path, ?string $scope = 'default', ?string $scopeCode = null)
-    {
-        return $this->scopeConfig->getValue($path, $scope, $scopeCode);
-    }
 }
