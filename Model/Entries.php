@@ -68,17 +68,27 @@ class Entries
     public function flush() : void
     {
         $tags = $this->get();
-        if (count($tags) > 0) {
-            $this->logger->debug("[CacheDebounce] Flushing Tags: " . json_encode($tags));
-            $this->config->setShouldDebouncePurgeRequest(false);
-            try {
-                $this->purgeCache->sendPurgeRequest($tags);
-                $this->resourceConnection->getConnection()->delete($this->tableName);
-            } finally {
-                $this->config->setShouldDebouncePurgeRequest(true);
-            }
-        } else {
+        if (count($tags) === 0) {
             $this->logger->debug("[CacheDebounce] Nothing to flush");
+            return;
+        }
+
+        $this->logger->debug("[CacheDebounce] Flushing Tags: " . json_encode($tags));
+        $this->config->setShouldDebouncePurgeRequest(false);
+
+        try {
+            $success = $this->purgeCache->sendPurgeRequest($tags);
+
+            if (!$success) {
+                $this->logger->error(
+                    "[CacheDebounce] Purge request failed — leaving tags queued for retry: " . json_encode($tags)
+                );
+                return;
+            }
+
+            $this->resourceConnection->getConnection()->delete($this->tableName);
+        } finally {
+            $this->config->setShouldDebouncePurgeRequest(true);
         }
     }
 }
