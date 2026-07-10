@@ -44,6 +44,10 @@ class Entries
      */
     public function add(array $tags) : void
     {
+        if (!$tags) {
+            return;
+        }
+
         $this->resourceConnection->getConnection()
             ->insertArray($this->tableName, ['tag'], $tags);
     }
