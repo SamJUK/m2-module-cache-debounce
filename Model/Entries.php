@@ -71,8 +71,12 @@ class Entries
         if (count($tags) > 0) {
             $this->logger->debug("[CacheDebounce] Flushing Tags: " . json_encode($tags));
             $this->config->setShouldDebouncePurgeRequest(false);
-            $this->purgeCache->sendPurgeRequest($tags);
-            $this->resourceConnection->getConnection()->delete($this->tableName);
+            try {
+                $this->purgeCache->sendPurgeRequest($tags);
+                $this->resourceConnection->getConnection()->delete($this->tableName);
+            } finally {
+                $this->config->setShouldDebouncePurgeRequest(true);
+            }
         } else {
             $this->logger->debug("[CacheDebounce] Nothing to flush");
         }
