@@ -7,10 +7,14 @@ namespace SamJUK\CacheDebounce\Model;
 use SamJUK\CacheDebounce\Model\Config;
 use SamJUK\CacheDebounce\Model\Storage\QueueStorageInterface;
 use Magento\CacheInvalidate\Model\PurgeCache;
+use Magento\Framework\FlagManager;
 use Psr\Log\LoggerInterface;
 
 class Entries
 {
+    public const FLAG_LAST_FLUSH_AT = 'samjuk_cache_debounce_last_flush_at';
+    public const FLAG_LAST_FLUSH_DURATION = 'samjuk_cache_debounce_last_flush_duration';
+
     /** @var QueueStorageInterface $storage */
     private $storage;
 
@@ -23,16 +27,21 @@ class Entries
     /** @var LoggerInterface $logger */
     private $logger;
 
+    /** @var FlagManager $flagManager */
+    private $flagManager;
+
     public function __construct(
         Config $config,
         PurgeCache $purgeCache,
         QueueStorageInterface $storage,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        FlagManager $flagManager
     ) {
         $this->config = $config;
         $this->purgeCache = $purgeCache;
         $this->storage = $storage;
         $this->logger = $logger;
+        $this->flagManager = $flagManager;
     }
 
     /**
@@ -48,7 +57,11 @@ class Entries
      */
     public function flush() : void
     {
-        $batchId = $this->storage->claim();
+        // Resume an already-claimed batch before claiming new work.
+        $batchId = $this->storage->activeBatch();
+        if ($batchId === '') {
+            $batchId = $this->storage->claim();
+        }
         if ($batchId === '') {
             $this->logger->debug("[CacheDebounce] Nothing to flush");
             return;
@@ -57,6 +70,7 @@ class Entries
         $tags = $this->storage->tags($batchId);
         $this->logger->debug("[CacheDebounce] Flushing Tags: " . json_encode($tags));
         $this->config->setShouldDebouncePurgeRequest(false);
+        $start = microtime(true);
 
         try {
             $success = $this->purgeCache->sendPurgeRequest($tags);
@@ -80,5 +94,8 @@ class Entries
         } finally {
             $this->config->setShouldDebouncePurgeRequest(true);
         }
+
+        $this->flagManager->saveFlag(self::FLAG_LAST_FLUSH_AT, date('Y-m-d H:i:s'));
+        $this->flagManager->saveFlag(self::FLAG_LAST_FLUSH_DURATION, round(microtime(true) - $start, 1));
     }
 }

@@ -10,6 +10,7 @@ class RedisTest extends TestCase
 {
     private const KEY_LIVE = 'samjuk_cache_debounce:queue:live';
     private const KEY_BATCH_PREFIX = 'samjuk_cache_debounce:queue:batch:';
+    private const KEY_ACTIVE_BATCH = 'samjuk_cache_debounce:queue:active_batch_id';
 
     private $client;
     private $connectionResolver;
@@ -19,7 +20,7 @@ class RedisTest extends TestCase
     {
         $this->client = $this->getMockBuilder(\Credis_Client::class)
             ->disableOriginalConstructor()
-            ->addMethods(['sAdd', 'rename', 'sMembers', 'del', 'sUnionStore'])
+            ->addMethods(['sAdd', 'rename', 'sMembers', 'del', 'sUnionStore', 'sCard', 'set', 'get'])
             ->getMock();
         $this->connectionResolver = $this->createMock(ConnectionResolver::class);
         $this->connectionResolver->method('getClient')->willReturn($this->client);
@@ -75,6 +76,23 @@ class RedisTest extends TestCase
         $this->assertSame(32, strlen($batchId));
     }
 
+    public function testClaimRecordsTheActiveBatchMarker()
+    {
+        $this->client->expects($this->once())
+            ->method('set')
+            ->with(self::KEY_ACTIVE_BATCH, $this->isType('string'));
+
+        $this->storage->claim();
+    }
+
+    public function testClaimDoesNotSetTheActiveBatchMarkerWhenNothingWasPending()
+    {
+        $this->client->method('rename')->willThrowException(new \CredisException('ERR no such key'));
+        $this->client->expects($this->never())->method('set');
+
+        $this->storage->claim();
+    }
+
     public function testTagsReadsFromTheBatchKey()
     {
         $this->client->expects($this->once())
@@ -85,24 +103,66 @@ class RedisTest extends TestCase
         $this->assertSame(['cat_c_1'], $this->storage->tags('batch-123'));
     }
 
-    public function testClearDeletesOnlyTheBatchKey()
+    public function testClearDeletesTheBatchKeyAndTheActiveBatchMarker()
     {
-        $this->client->expects($this->once())
+        $deletedKeys = [];
+        $this->client->expects($this->exactly(2))
             ->method('del')
-            ->with(self::KEY_BATCH_PREFIX . 'batch-123');
+            ->willReturnCallback(function (string $key) use (&$deletedKeys) {
+                $deletedKeys[] = $key;
+                return true;
+            });
 
         $this->storage->clear('batch-123');
+
+        $this->assertSame([self::KEY_BATCH_PREFIX . 'batch-123', self::KEY_ACTIVE_BATCH], $deletedKeys);
     }
 
-    public function testReleaseMergesBatchSetBackIntoLiveSetThenDeletesTheBatch()
+    public function testReleaseMergesBatchSetBackIntoLiveSetThenDeletesTheBatchAndMarker()
     {
         $this->client->expects($this->once())
             ->method('sUnionStore')
             ->with(self::KEY_LIVE, self::KEY_LIVE, self::KEY_BATCH_PREFIX . 'batch-123');
-        $this->client->expects($this->once())
+
+        $deletedKeys = [];
+        $this->client->expects($this->exactly(2))
             ->method('del')
-            ->with(self::KEY_BATCH_PREFIX . 'batch-123');
+            ->willReturnCallback(function (string $key) use (&$deletedKeys) {
+                $deletedKeys[] = $key;
+                return true;
+            });
 
         $this->storage->release('batch-123');
+
+        $this->assertSame([self::KEY_BATCH_PREFIX . 'batch-123', self::KEY_ACTIVE_BATCH], $deletedKeys);
+    }
+
+    public function testPendingCountReadsCardinalityOfTheLiveSet()
+    {
+        $this->client->expects($this->once())
+            ->method('sCard')
+            ->with(self::KEY_LIVE)
+            ->willReturn(3);
+
+        $this->assertSame(3, $this->storage->pendingCount());
+    }
+
+    public function testActiveBatchReturnsEmptyStringWhenNoBatchIsClaimed()
+    {
+        $this->client->method('get')->with(self::KEY_ACTIVE_BATCH)->willReturn(false);
+
+        $this->assertSame('', $this->storage->activeBatch());
+    }
+
+    public function testActiveBatchReturnsIdOfAlreadyClaimedBatch()
+    {
+        $this->client->method('get')->with(self::KEY_ACTIVE_BATCH)->willReturn('batch-123');
+
+        $this->assertSame('batch-123', $this->storage->activeBatch());
+    }
+
+    public function testOldestPendingAgeSecondsIsAlwaysNull()
+    {
+        $this->assertNull($this->storage->oldestPendingAgeSeconds());
     }
 }

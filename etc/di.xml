@@ -19,6 +19,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="samjuk_cache_debounce_flush" xsi:type="object">SamJUK\CacheDebounce\Console\Command\Flush</item>
+                <item name="samjuk_cache_debounce_status" xsi:type="object">SamJUK\CacheDebounce\Console\Command\Status</item>
             </argument>
         </arguments>
     </type>

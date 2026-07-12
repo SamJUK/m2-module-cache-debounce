@@ -162,4 +162,65 @@ class DatabaseTest extends TestCase
 
         $this->storage->release('batch-123');
     }
+
+    public function testPendingCountCountsOnlyUnclaimedRows()
+    {
+        $select = $this->createMock(\Magento\Framework\DB\Select::class);
+        $select->method('from')->with(self::TABLE_NAME, ['count' => 'COUNT(*)'])->willReturn($select);
+        $select->method('where')->with('batch_id = ?', '')->willReturn($select);
+        $this->connection->method('select')->willReturn($select);
+        $this->connection->method('fetchOne')->with($select)->willReturn('5');
+
+        $this->assertSame(5, $this->storage->pendingCount());
+    }
+
+    public function testActiveBatchReturnsEmptyStringWhenNothingClaimed()
+    {
+        $select = $this->createMock(\Magento\Framework\DB\Select::class);
+        $select->method('from')->willReturn($select);
+        $select->method('where')->with('batch_id != ?', '')->willReturn($select);
+        $select->method('limit')->with(1)->willReturn($select);
+        $this->connection->method('select')->willReturn($select);
+        $this->connection->method('fetchOne')->willReturn(false);
+
+        $this->assertSame('', $this->storage->activeBatch());
+    }
+
+    public function testActiveBatchReturnsIdOfAlreadyClaimedBatch()
+    {
+        $select = $this->createMock(\Magento\Framework\DB\Select::class);
+        $select->method('from')->willReturn($select);
+        $select->method('where')->willReturn($select);
+        $select->method('limit')->willReturn($select);
+        $this->connection->method('select')->willReturn($select);
+        $this->connection->method('fetchOne')->willReturn('batch-123');
+
+        $this->assertSame('batch-123', $this->storage->activeBatch());
+    }
+
+    public function testOldestPendingAgeSecondsReturnsNullWhenNothingPending()
+    {
+        // Aggregate query returns one row of SQL NULL, which PDO surfaces as null.
+        $select = $this->createMock(\Magento\Framework\DB\Select::class);
+        $select->method('from')->willReturn($select);
+        $select->method('where')->willReturn($select);
+        $this->connection->method('select')->willReturn($select);
+        $this->connection->method('fetchOne')->willReturn(null);
+
+        $this->assertNull($this->storage->oldestPendingAgeSeconds());
+    }
+
+    public function testOldestPendingAgeSecondsReturnsAgeComputedBySql()
+    {
+        $select = $this->createMock(\Magento\Framework\DB\Select::class);
+        $select->method('from')->with(
+            self::TABLE_NAME,
+            ['age' => 'TIMESTAMPDIFF(SECOND, MIN(created_at), NOW())']
+        )->willReturn($select);
+        $select->method('where')->willReturn($select);
+        $this->connection->method('select')->willReturn($select);
+        $this->connection->method('fetchOne')->willReturn('10');
+
+        $this->assertSame(10, $this->storage->oldestPendingAgeSeconds());
+    }
 }
