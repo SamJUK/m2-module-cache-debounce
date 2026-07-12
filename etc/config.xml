@@ -9,5 +9,10 @@
                 <flush_schedule>*/15 * * * *</flush_schedule>
             </cron>
         </samjuk_cache_debounce>
+        <samjuk_cache_debounce_advanced>
+            <general>
+                <storage_driver>db</storage_driver>
+            </general>
+        </samjuk_cache_debounce_advanced>
     </default>
 </config>

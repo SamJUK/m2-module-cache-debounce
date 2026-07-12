@@ -23,5 +23,20 @@
                 </field>
             </group>
         </section>
+
+        <!-- showInDefault/Website/Store all "0" hides this from Admin UI; config:set still works -->
+        <section id="samjuk_cache_debounce_advanced" translate="label" type="text" sortOrder="20" showInDefault="0" showInWebsite="0" showInStore="0">
+            <label>Cache Debounce (Advanced)</label>
+            <tab>samjuk</tab>
+            <resource>SamJUK_CacheDebounce::storage_driver</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="0" showInWebsite="0" showInStore="0">
+                <label>General</label>
+                <field id="storage_driver" translate="label comment" type="select" sortOrder="10" showInDefault="0" showInWebsite="0" showInStore="0">
+                    <label>Storage Driver</label>
+                    <comment>Do not change unless you know what you are doing. See README.md.</comment>
+                    <source_model>SamJUK\CacheDebounce\Model\Config\Source\StorageDriver</source_model>
+                </field>
+            </group>
+        </section>
     </system>
 </config>
