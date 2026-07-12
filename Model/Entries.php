@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace SamJUK\CacheDebounce\Model;
 
 use SamJUK\CacheDebounce\Model\Config;
+use SamJUK\CacheDebounce\Model\Storage\QueueStorageInterface;
 use Magento\CacheInvalidate\Model\PurgeCache;
-use Magento\Framework\App\ResourceConnection;
 use Psr\Log\LoggerInterface;
 
 class Entries
 {
-    /** @var string $tableName */
-    private $tableName;
-
-    /** @var ResourceConnection $resourceConnection */
-    private $resourceConnection;
+    /** @var QueueStorageInterface $storage */
+    private $storage;
 
     /** @var PurgeCache $purgeCache */
     private $purgeCache;
@@ -29,14 +26,13 @@ class Entries
     public function __construct(
         Config $config,
         PurgeCache $purgeCache,
-        ResourceConnection $resourceConnection,
+        QueueStorageInterface $storage,
         LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->purgeCache = $purgeCache;
-        $this->resourceConnection = $resourceConnection;
+        $this->storage = $storage;
         $this->logger = $logger;
-        $this->tableName = $resourceConnection->getTableName('samjuk_cache_debounce');
     }
 
     /**
@@ -44,22 +40,7 @@ class Entries
      */
     public function add(array $tags) : void
     {
-        if (!$tags) {
-            return;
-        }
-
-        $this->resourceConnection->getConnection()
-            ->insertArray($this->tableName, ['tag'], $tags);
-    }
-
-    /**
-     * Get all tags from the purge queue
-     */
-    public function get() : array
-    {
-        $connection = $this->resourceConnection->getConnection();
-        $query = $connection->select()->from($this->tableName, 'tag')->distinct();
-        return $connection->fetchCol($query);
+        $this->storage->add($tags);
     }
 
     /**
@@ -67,12 +48,13 @@ class Entries
      */
     public function flush() : void
     {
-        $tags = $this->get();
-        if (count($tags) === 0) {
+        $batchId = $this->storage->claim();
+        if ($batchId === '') {
             $this->logger->debug("[CacheDebounce] Nothing to flush");
             return;
         }
 
+        $tags = $this->storage->tags($batchId);
         $this->logger->debug("[CacheDebounce] Flushing Tags: " . json_encode($tags));
         $this->config->setShouldDebouncePurgeRequest(false);
 
@@ -81,12 +63,20 @@ class Entries
 
             if (!$success) {
                 $this->logger->error(
-                    "[CacheDebounce] Purge request failed — leaving tags queued for retry: " . json_encode($tags)
+                    "[CacheDebounce] Purge request failed — releasing batch $batchId for retry: "
+                        . json_encode($tags)
                 );
+                $this->storage->release($batchId);
                 return;
             }
 
-            $this->resourceConnection->getConnection()->delete($this->tableName);
+            $this->storage->clear($batchId);
+        } catch (\Throwable $e) {
+            $this->logger->error(
+                "[CacheDebounce] Purge request threw — releasing batch $batchId for retry: " . $e->getMessage()
+            );
+            $this->storage->release($batchId);
+            throw $e;
         } finally {
             $this->config->setShouldDebouncePurgeRequest(true);
         }

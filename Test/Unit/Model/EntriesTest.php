@@ -2,69 +2,75 @@
 
 namespace SamJUK\CacheDebounce\Test\Unit\Model;
 
+use Magento\CacheInvalidate\Model\PurgeCache;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use SamJUK\CacheDebounce\Model\Config as CacheDebounceConfig;
 use SamJUK\CacheDebounce\Model\Entries as CacheDebounceEntries;
+use SamJUK\CacheDebounce\Model\Storage\QueueStorageInterface;
 
 class EntriesTest extends TestCase
 {
+    private const BATCH_ID = 'batch-123';
     private const CACHE_TAGS = ['cat_c_1', 'cat_c_2', 'cat_c_p_1'];
 
     private $cacheDebounceConfig;
     private $purgeCacheModel;
-    private $connection;
-    private $resourceConnection;
+    private $storage;
     private $loggerInterface;
     private $cacheDebounceEntries;
-    private $select;
 
     protected function setUp(): void
     {
-        $this->select = $this->createMock(\Magento\Framework\DB\Select::class);
-        $this->select->method('from')->willReturn($this->select);
-        $this->select->method('distinct')->willReturn($this->select);
-        $this->connection = $this->createMock(\Magento\Framework\DB\Adapter\AdapterInterface::class);
-        $this->connection->method('select')->willReturn($this->select);
-        $this->cacheDebounceConfig = $this->createMock(\SamJUK\CacheDebounce\Model\Config::class);
-        $this->resourceConnection = $this->createMock(\Magento\Framework\App\ResourceConnection::class);
-        $this->resourceConnection->method('getConnection')->willReturn($this->connection);
-        $this->purgeCacheModel = $this->createMock(\Magento\CacheInvalidate\Model\PurgeCache::class);
-        $this->loggerInterface = $this->createMock(\Psr\Log\LoggerInterface::class);
+        $this->cacheDebounceConfig = $this->createMock(CacheDebounceConfig::class);
+        $this->storage = $this->createMock(QueueStorageInterface::class);
+        $this->purgeCacheModel = $this->createMock(PurgeCache::class);
+        $this->loggerInterface = $this->createMock(LoggerInterface::class);
         $this->cacheDebounceEntries = new CacheDebounceEntries(
             $this->cacheDebounceConfig,
             $this->purgeCacheModel,
-            $this->resourceConnection,
+            $this->storage,
             $this->loggerInterface
         );
     }
 
-    public function testFlushTags()
+    public function testFlushDoesNothingWhenNothingIsClaimed()
     {
-        $this->connection->method('fetchCol')->willReturn([
-            self::CACHE_TAGS
-        ]);
+        $this->storage->method('claim')->willReturn('');
 
-        $this->purgeCacheModel->expects($this->once())
-            ->method('sendPurgeRequest')
-            ->with([self::CACHE_TAGS])
-            ->willReturn(true);
-
-        $this->connection->expects($this->once())->method('delete');
+        $this->purgeCacheModel->expects($this->never())->method('sendPurgeRequest');
 
         $this->cacheDebounceEntries->flush();
     }
 
-    public function testFlushDoesNotClearQueueWhenPurgeRequestFails()
+    public function testFlushPurgesClaimedTagsAndClearsBatch()
     {
-        $this->connection->method('fetchCol')->willReturn([
-            self::CACHE_TAGS
-        ]);
+        $this->storage->method('claim')->willReturn(self::BATCH_ID);
+        $this->storage->method('tags')->with(self::BATCH_ID)->willReturn(self::CACHE_TAGS);
 
         $this->purgeCacheModel->expects($this->once())
             ->method('sendPurgeRequest')
-            ->with([self::CACHE_TAGS])
+            ->with(self::CACHE_TAGS)
+            ->willReturn(true);
+
+        $this->storage->expects($this->once())->method('clear')->with(self::BATCH_ID);
+
+        $this->cacheDebounceEntries->flush();
+    }
+
+    public function testFlushReleasesBatchInsteadOfClearingWhenPurgeRequestFails()
+    {
+        $this->storage->method('claim')->willReturn(self::BATCH_ID);
+        $this->storage->method('tags')->willReturn(self::CACHE_TAGS);
+
+        $this->purgeCacheModel->expects($this->once())
+            ->method('sendPurgeRequest')
+            ->with(self::CACHE_TAGS)
             ->willReturn(false);
 
-        $this->connection->expects($this->never())->method('delete');
+        $this->storage->expects($this->never())->method('clear');
+        $this->storage->expects($this->once())->method('release')->with(self::BATCH_ID);
 
         $this->loggerInterface->expects($this->once())->method('error');
 
@@ -73,19 +79,23 @@ class EntriesTest extends TestCase
 
     public function testFlushResetsDebounceFlagEvenWhenPurgeRequestThrows()
     {
-        $scopeConfig = $this->createMock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
+        $scopeConfig = $this->createMock(ScopeConfigInterface::class);
         $scopeConfig->method('isSetFlag')->willReturn(true);
-        $config = new \SamJUK\CacheDebounce\Model\Config($scopeConfig);
+        $config = new CacheDebounceConfig($scopeConfig);
 
-        $this->connection->method('fetchCol')->willReturn(self::CACHE_TAGS);
+        $this->storage->method('claim')->willReturn(self::BATCH_ID);
+        $this->storage->method('tags')->willReturn(self::CACHE_TAGS);
         $this->purgeCacheModel->method('sendPurgeRequest')->willThrowException(new \RuntimeException('varnish down'));
 
         $entries = new CacheDebounceEntries(
             $config,
             $this->purgeCacheModel,
-            $this->resourceConnection,
+            $this->storage,
             $this->loggerInterface
         );
+
+        $this->storage->expects($this->never())->method('clear');
+        $this->storage->expects($this->once())->method('release')->with(self::BATCH_ID);
 
         $this->assertTrue($config->shouldDebouncePurgeRequest());
 
@@ -99,19 +109,17 @@ class EntriesTest extends TestCase
         $this->assertTrue($config->shouldDebouncePurgeRequest());
     }
 
-    public function testAddWithEmptyTagsDoesNotTouchConnection()
+    public function testAddDelegatesToStorage()
     {
-        $this->connection->expects($this->never())->method('insertArray');
-
-        $this->cacheDebounceEntries->add([]);
-    }
-
-    public function testAddWithTagsInsertsThem()
-    {
-        $this->connection->expects($this->once())
-            ->method('insertArray')
-            ->with($this->anything(), ['tag'], self::CACHE_TAGS);
+        $this->storage->expects($this->once())->method('add')->with(self::CACHE_TAGS);
 
         $this->cacheDebounceEntries->add(self::CACHE_TAGS);
+    }
+
+    public function testAddWithEmptyTagsStillDelegatesToStorage()
+    {
+        $this->storage->expects($this->once())->method('add')->with([]);
+
+        $this->cacheDebounceEntries->add([]);
     }
 }

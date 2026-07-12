@@ -1,0 +1,9 @@
+{
+    "samjuk_cache_debounce": {
+        "column": {
+            "batch_id": true,
+            "tag": true,
+            "created_at": true
+        }
+    }
+}

@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
     <table name="samjuk_cache_debounce" resource="default" engine="innodb">
+        <!-- No PK yet: existing installs may have dirty rows; ClearQueueTable cleans them before a follow-up release adds it -->
         <column xsi:type="varchar" name="tag" nullable="true" length="255" comment="Tag"/>
+        <column xsi:type="varchar" name="batch_id" nullable="false" length="32" default="" comment="Batch id. Empty string = unclaimed/pending"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="When this tag was first queued"/>
     </table>
 </schema>
