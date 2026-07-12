@@ -38,6 +38,45 @@ Option | Config Path | Default | Description
 --- | --- | --- | ---
 Enabled | `samjuk_cache_debounce/general/enabled` | `0` | Feature flag to toggle functionality of the module
 Flush Schedule | `samjuk_cache_debounce/cron/flush_schedule` | `*/5 0 0 0 0` | Cron schedule to run the scheduled flush
+Storage Driver | `samjuk_cache_debounce_advanced/general/storage_driver` | `db` | Queue storage backend — `db` or `redis`. A deploy-time infra decision, not a store setting — see below
+
+This one is a deliberate exception to "Configuration can be handled via System configuration" above: it's hidden from Stores > Configuration entirely (`showInDefault`/`showInWebsite`/`showInStore` all `0`) and gated behind its own ACL resource (`SamJUK_CacheDebounce::storage_driver`) that isn't granted to any role by default. It exists only so `config:set` has a registered path to write to. Set it with:
+```sh
+php bin/magento config:set samjuk_cache_debounce_advanced/general/storage_driver redis
+```
+Add `-e` to lock it into `app/etc/env.php` instead of `core_config_data`, removing Admin overridability entirely.
+
+### Redis storage driver
+
+The `redis` driver connects via a dedicated `app/etc/env.php` block:
+```php
+'cache_debounce' => [
+    'redis' => [
+        'host' => '127.0.0.1',
+        'port' => '6379',
+        'password' => '',
+        'database' => '2',
+    ],
+],
+```
+
+If that block is absent, the module falls back to whatever Redis backend is already configured for the `page_cache` cache frontend, so it works zero-config once the driver is switched on.
+
+> **Note:** sharing the page cache's Redis instance means pending purge tags are subject to that instance's `maxmemory-policy`. If it's `allkeys-lru`/`allkeys-lfu` (common for FPC), tags can be silently evicted under memory pressure. Configure a dedicated block above to avoid this.
+
+### Adding your own storage driver
+
+Drivers are resolved from an array bound in `etc/di.xml`, keyed by the value of `storage_driver`. Any module can add an entry to extend it, without touching this module's `di.xml`:
+```xml
+<type name="SamJUK\CacheDebounce\Model\Storage\Pool">
+    <arguments>
+        <argument name="drivers" xsi:type="array">
+            <item name="my_driver" xsi:type="string">Vendor\Module\Model\Storage\MyDriver</item>
+        </argument>
+    </arguments>
+</type>
+```
+`MyDriver` just needs to implement `QueueStorageInterface`. Then `bin/magento config:set samjuk_cache_debounce_advanced/general/storage_driver my_driver`.
 
 ## Will this help my store?
 
