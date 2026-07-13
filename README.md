@@ -38,6 +38,12 @@ Option | Config Path | Default | Description
 --- | --- | --- | ---
 Enabled | `samjuk_cache_debounce/general/enabled` | `0` | Feature flag to toggle functionality of the module
 Flush Schedule | `samjuk_cache_debounce/cron/flush_schedule` | `*/5 0 0 0 0` | Cron schedule to run the scheduled flush
+Stagger Enabled | `samjuk_cache_debounce/stagger/enabled` | `0` | Release a claimed batch gradually instead of purging it all at once — see below
+Stagger Batch Size | `samjuk_cache_debounce/stagger/batch_size` | `50` | Tags per purge chunk
+Stagger Interval (ms) | `samjuk_cache_debounce/stagger/interval_ms` | `1000` | Pause between chunks
+Stagger Max Runtime (s) | `samjuk_cache_debounce/stagger/max_runtime_seconds` | `240` | Safety budget per cron/CLI invocation
+Stagger Lag Ratio Threshold | `samjuk_cache_debounce/stagger/lag_ratio_threshold` | `1.0` | A run counts as "lagging" if tags arriving during the drain ≥ this ratio of tags just drained
+Stagger Lag Alert After Runs | `samjuk_cache_debounce/stagger/lag_alert_after_runs` | `3` | Consecutive lagging runs before an admin notification is raised
 Storage Driver | `samjuk_cache_debounce_advanced/general/storage_driver` | `db` | Queue storage backend — `db` or `redis`. A deploy-time infra decision, not a store setting — see below
 
 This one is a deliberate exception to "Configuration can be handled via System configuration" above: it's hidden from Stores > Configuration entirely (`showInDefault`/`showInWebsite`/`showInStore` all `0`) and gated behind its own ACL resource (`SamJUK_CacheDebounce::storage_driver`) that isn't granted to any role by default. It exists only so `config:set` has a registered path to write to. Set it with:
@@ -45,6 +51,8 @@ This one is a deliberate exception to "Configuration can be handled via System c
 php bin/magento config:set samjuk_cache_debounce_advanced/general/storage_driver redis
 ```
 Add `-e` to lock it into `app/etc/env.php` instead of `core_config_data`, removing Admin overridability entirely.
+
+**Only switch drivers when the queue is empty** (`samjuk:cache-debounce:status` shows zero pending and no active batch). Each driver only sees its own storage — switching mid-flight leaves whatever was queued in the old backend stranded there, invisible to the new one, until something re-queues the same tags.
 
 ### Redis storage driver
 
@@ -63,6 +71,19 @@ The `redis` driver connects via a dedicated `app/etc/env.php` block:
 If that block is absent, the module falls back to whatever Redis backend is already configured for the `page_cache` cache frontend, so it works zero-config once the driver is switched on.
 
 > **Note:** sharing the page cache's Redis instance means pending purge tags are subject to that instance's `maxmemory-policy`. If it's `allkeys-lru`/`allkeys-lfu` (common for FPC), tags can be silently evicted under memory pressure. Configure a dedicated block above to avoid this.
+
+### Staggered / batched purge release
+
+On a large debounce window, a single `flush()` can send hundreds of tags to Varnish in one instant — a CPU/IO spike exactly when the store is under load. Enabling `stagger` releases a claimed batch gradually instead: chunked into `batch_size`-sized purge requests, paced by `interval_ms`, within a `max_runtime_seconds` budget per cron/CLI invocation. Both the cron job and `samjuk:cache-debounce:flush` route through this — a single-shot flush when disabled (the pre-existing behavior), a paced release when enabled.
+
+An interrupted run (deploy, OOM-kill, timeout) leaves its batch claimed but not cleared; the next invocation resumes it — by re-purging its full tag list, not from a persisted chunk offset. A Varnish BAN is idempotent, so the cost of that is, at worst, a handful of redundant purges.
+
+Only one release runs at a time, guarded by `Magento\Framework\Lock\LockManagerInterface`. If release throughput can't keep up with ingestion, it's logged as a warning, surfaced in the admin bell-icon notifications after `lag_alert_after_runs` consecutive lagging runs, and re-raised every `lag_alert_after_runs` runs for as long as the condition persists.
+
+Check current state with:
+```sh
+php bin/magento samjuk:cache-debounce:status
+```
 
 ### Adding your own storage driver
 

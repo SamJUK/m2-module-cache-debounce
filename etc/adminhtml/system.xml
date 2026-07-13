@@ -22,6 +22,34 @@
                     <label>Flush Schedule</label>
                 </field>
             </group>
+            <group id="stagger" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Staggered Release</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Enabled</label>
+                    <comment>Release a claimed batch gradually instead of purging it all at once. Disabled = single-shot flush() (current behavior).</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="batch_size" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Batch Size</label>
+                    <comment>Tags per purge chunk.</comment>
+                </field>
+                <field id="interval_ms" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Interval (ms)</label>
+                    <comment>Pause between chunks.</comment>
+                </field>
+                <field id="max_runtime_seconds" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Max Runtime (seconds)</label>
+                    <comment>Safety budget per cron/CLI invocation — must comfortably clear before the Flush Schedule interval elapses again.</comment>
+                </field>
+                <field id="lag_ratio_threshold" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Lag Ratio Threshold</label>
+                    <comment>A run counts as "lagging" if tags arriving during the drain are &gt;= this ratio of tags just drained.</comment>
+                </field>
+                <field id="lag_alert_after_runs" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Lag Alert After Runs</label>
+                    <comment>Consecutive lagging runs before an admin notification is raised.</comment>
+                </field>
+            </group>
         </section>
 
         <!-- showInDefault/Website/Store all "0" hides this from Admin UI; config:set still works -->

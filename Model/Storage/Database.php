@@ -107,4 +107,48 @@ class Database implements QueueStorageInterface
     {
         return $this->resourceConnection->getConnection()->quoteInto('batch_id = ?', $batchId);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function pendingCount(): int
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $query = $connection->select()
+            ->from($this->tableName, ['count' => 'COUNT(*)'])
+            ->where('batch_id = ?', self::UNCLAIMED_BATCH_ID);
+
+        return (int)$connection->fetchOne($query);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function activeBatch(): string
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $query = $connection->select()
+            ->from($this->tableName, ['batch_id'])
+            ->where('batch_id != ?', self::UNCLAIMED_BATCH_ID)
+            ->limit(1);
+
+        $batchId = $connection->fetchOne($query);
+
+        return $batchId !== false ? (string)$batchId : '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function oldestPendingAgeSeconds(): ?int
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $query = $connection->select()
+            ->from($this->tableName, ['age' => 'TIMESTAMPDIFF(SECOND, MIN(created_at), NOW())'])
+            ->where('batch_id = ?', self::UNCLAIMED_BATCH_ID);
+
+        $age = $connection->fetchOne($query);
+
+        return ($age === null || $age === false) ? null : max(0, (int)$age);
+    }
 }

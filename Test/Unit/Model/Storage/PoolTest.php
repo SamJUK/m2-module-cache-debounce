@@ -87,4 +87,28 @@ class PoolTest extends TestCase
 
         $this->pool()->release('batch-123');
     }
+
+    public function testPendingCountDelegatesToTheResolvedDriver()
+    {
+        $this->scopeConfig->method('getValue')->willReturn('db');
+        $this->database->expects($this->once())->method('pendingCount')->willReturn(5);
+
+        $this->assertSame(5, $this->pool()->pendingCount());
+    }
+
+    public function testActiveBatchDelegatesToTheResolvedDriver()
+    {
+        $this->scopeConfig->method('getValue')->willReturn('redis');
+        $this->redis->expects($this->once())->method('activeBatch')->willReturn('batch-123');
+
+        $this->assertSame('batch-123', $this->pool()->activeBatch());
+    }
+
+    public function testOldestPendingAgeSecondsDelegatesToTheResolvedDriver()
+    {
+        $this->scopeConfig->method('getValue')->willReturn('db');
+        $this->database->expects($this->once())->method('oldestPendingAgeSeconds')->willReturn(42);
+
+        $this->assertSame(42, $this->pool()->oldestPendingAgeSeconds());
+    }
 }

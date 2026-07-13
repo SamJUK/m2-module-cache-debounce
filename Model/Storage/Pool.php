@@ -74,6 +74,30 @@ class Pool implements QueueStorageInterface
         $this->driver()->release($batchId);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function pendingCount(): int
+    {
+        return $this->driver()->pendingCount();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function activeBatch(): string
+    {
+        return $this->driver()->activeBatch();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function oldestPendingAgeSeconds(): ?int
+    {
+        return $this->driver()->oldestPendingAgeSeconds();
+    }
+
     private function driver(): QueueStorageInterface
     {
         if ($this->resolved === null) {

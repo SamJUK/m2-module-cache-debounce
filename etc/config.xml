@@ -8,6 +8,14 @@
             <cron>
                 <flush_schedule>*/15 * * * *</flush_schedule>
             </cron>
+            <stagger>
+                <enabled>0</enabled>
+                <batch_size>50</batch_size>
+                <interval_ms>1000</interval_ms>
+                <max_runtime_seconds>240</max_runtime_seconds>
+                <lag_ratio_threshold>1</lag_ratio_threshold>
+                <lag_alert_after_runs>3</lag_alert_after_runs>
+            </stagger>
         </samjuk_cache_debounce>
         <samjuk_cache_debounce_advanced>
             <general>

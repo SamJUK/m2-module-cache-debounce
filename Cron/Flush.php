@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace SamJUK\CacheDebounce\Cron;
 
-use SamJUK\CacheDebounce\Model\Entries as CacheDebouncedEntries;
+use SamJUK\CacheDebounce\Model\StaggeredFlush;
 
 class Flush
 {
-    /** @var CacheDebouncedEntries $cacheDebouncedEntries */
-    private $cacheDebouncedEntries;
+    /** @var StaggeredFlush $staggeredFlush */
+    private $staggeredFlush;
 
     public function __construct(
-        CacheDebouncedEntries $cacheDebouncedEntries
+        StaggeredFlush $staggeredFlush
     ) {
-        $this->cacheDebouncedEntries = $cacheDebouncedEntries;
+        $this->staggeredFlush = $staggeredFlush;
     }
 
     public function execute() : void
     {
-        $this->cacheDebouncedEntries->flush();
+        $this->staggeredFlush->execute();
     }
 }

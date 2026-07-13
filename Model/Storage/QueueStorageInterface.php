@@ -30,4 +30,20 @@ interface QueueStorageInterface
      * Release a claimed batch back to pending, merging idempotently.
      */
     public function release(string $batchId): void;
+
+    /**
+     * Count of currently pending (unclaimed) tags.
+     */
+    public function pendingCount(): int;
+
+    /**
+     * Id of an already-claimed, not-yet-cleared batch, if one exists.
+     * Returns '' if nothing is currently claimed.
+     */
+    public function activeBatch(): string;
+
+    /**
+     * Age in seconds of the oldest pending tag; null if none or unknown.
+     */
+    public function oldestPendingAgeSeconds(): ?int;
 }

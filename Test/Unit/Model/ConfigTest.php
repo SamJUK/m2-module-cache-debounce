@@ -37,4 +37,33 @@ class ConfigTest extends TestCase
         $config->setShouldDebouncePurgeRequest(false);
         $this->assertFalse($config->shouldDebouncePurgeRequest());
     }
+
+    public function testIsStaggerEnabled()
+    {
+        $scopeConfig = $this->createMock(ScopeConfigInterface::class);
+        $config = new CacheDebounceConfig($scopeConfig);
+        $this->assertFalse($config->isStaggerEnabled());
+
+        $scopeConfig->method('isSetFlag')->willReturn(1);
+        $this->assertTrue($config->isStaggerEnabled());
+    }
+
+    public function testStaggerNumericGetters()
+    {
+        $scopeConfig = $this->createMock(ScopeConfigInterface::class);
+        $scopeConfig->method('getValue')->willReturnMap([
+            ['samjuk_cache_debounce/stagger/batch_size', 'default', null, '50'],
+            ['samjuk_cache_debounce/stagger/interval_ms', 'default', null, '1000'],
+            ['samjuk_cache_debounce/stagger/max_runtime_seconds', 'default', null, '240'],
+            ['samjuk_cache_debounce/stagger/lag_ratio_threshold', 'default', null, '1.5'],
+            ['samjuk_cache_debounce/stagger/lag_alert_after_runs', 'default', null, '3'],
+        ]);
+        $config = new CacheDebounceConfig($scopeConfig);
+
+        $this->assertSame(50, $config->getStaggerBatchSize());
+        $this->assertSame(1000, $config->getStaggerIntervalMs());
+        $this->assertSame(240, $config->getStaggerMaxRuntimeSeconds());
+        $this->assertSame(1.5, $config->getStaggerLagRatioThreshold());
+        $this->assertSame(3, $config->getStaggerLagAlertAfterRuns());
+    }
 }

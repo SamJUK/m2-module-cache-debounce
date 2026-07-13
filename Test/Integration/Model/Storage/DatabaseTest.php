@@ -124,4 +124,33 @@ class DatabaseTest extends TestCase
         $nextBatchId = $this->storage->claim();
         $this->assertEquals(['cat_c_1'], $this->storage->tags($nextBatchId));
     }
+
+    public function testPendingCountAndActiveBatchReflectClaimState()
+    {
+        $this->assertSame(0, $this->storage->pendingCount());
+        $this->assertSame('', $this->storage->activeBatch());
+
+        $this->storage->add(['cat_c_1', 'cat_c_2']);
+        $this->assertSame(2, $this->storage->pendingCount());
+        $this->assertSame('', $this->storage->activeBatch());
+
+        $batchId = $this->storage->claim();
+        $this->assertSame(0, $this->storage->pendingCount());
+        $this->assertSame($batchId, $this->storage->activeBatch());
+
+        $this->storage->clear($batchId);
+        $this->assertSame('', $this->storage->activeBatch());
+    }
+
+    public function testOldestPendingAgeSecondsReflectsWhenTagsWereQueued()
+    {
+        $this->assertNull($this->storage->oldestPendingAgeSeconds());
+
+        $this->storage->add(['cat_c_1']);
+
+        $age = $this->storage->oldestPendingAgeSeconds();
+        $this->assertIsInt($age);
+        $this->assertGreaterThanOrEqual(0, $age);
+        $this->assertLessThan(10, $age);
+    }
 }

@@ -116,4 +116,28 @@ class RedisTest extends TestCase
         $nextBatchId = $this->storage->claim();
         $this->assertEquals(['cat_c_1'], $this->storage->tags($nextBatchId));
     }
+
+    public function testPendingCountAndActiveBatchReflectClaimState()
+    {
+        $this->assertSame(0, $this->storage->pendingCount());
+        $this->assertSame('', $this->storage->activeBatch());
+
+        $this->storage->add(['cat_c_1', 'cat_c_2']);
+        $this->assertSame(2, $this->storage->pendingCount());
+        $this->assertSame('', $this->storage->activeBatch());
+
+        $batchId = $this->storage->claim();
+        $this->assertSame(0, $this->storage->pendingCount());
+        $this->assertSame($batchId, $this->storage->activeBatch());
+
+        $this->storage->clear($batchId);
+        $this->assertSame('', $this->storage->activeBatch());
+    }
+
+    public function testOldestPendingAgeSecondsIsAlwaysNull()
+    {
+        $this->storage->add(['cat_c_1']);
+
+        $this->assertNull($this->storage->oldestPendingAgeSeconds());
+    }
 }

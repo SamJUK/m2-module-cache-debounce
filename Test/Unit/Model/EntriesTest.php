@@ -4,6 +4,7 @@ namespace SamJUK\CacheDebounce\Test\Unit\Model;
 
 use Magento\CacheInvalidate\Model\PurgeCache;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\FlagManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use SamJUK\CacheDebounce\Model\Config as CacheDebounceConfig;
@@ -19,6 +20,7 @@ class EntriesTest extends TestCase
     private $purgeCacheModel;
     private $storage;
     private $loggerInterface;
+    private $flagManager;
     private $cacheDebounceEntries;
 
     protected function setUp(): void
@@ -27,11 +29,13 @@ class EntriesTest extends TestCase
         $this->storage = $this->createMock(QueueStorageInterface::class);
         $this->purgeCacheModel = $this->createMock(PurgeCache::class);
         $this->loggerInterface = $this->createMock(LoggerInterface::class);
+        $this->flagManager = $this->createMock(FlagManager::class);
         $this->cacheDebounceEntries = new CacheDebounceEntries(
             $this->cacheDebounceConfig,
             $this->purgeCacheModel,
             $this->storage,
-            $this->loggerInterface
+            $this->loggerInterface,
+            $this->flagManager
         );
     }
 
@@ -55,6 +59,46 @@ class EntriesTest extends TestCase
             ->willReturn(true);
 
         $this->storage->expects($this->once())->method('clear')->with(self::BATCH_ID);
+
+        $this->cacheDebounceEntries->flush();
+    }
+
+    public function testFlushResumesAnAlreadyClaimedBatchInsteadOfClaimingNew()
+    {
+        $this->storage->method('activeBatch')->willReturn(self::BATCH_ID);
+        $this->storage->method('tags')->with(self::BATCH_ID)->willReturn(self::CACHE_TAGS);
+        $this->storage->expects($this->never())->method('claim');
+
+        $this->purgeCacheModel->method('sendPurgeRequest')->willReturn(true);
+
+        $this->storage->expects($this->once())->method('clear')->with(self::BATCH_ID);
+
+        $this->cacheDebounceEntries->flush();
+    }
+
+    public function testFlushWritesLastFlushFlagsOnSuccess()
+    {
+        $this->storage->method('claim')->willReturn(self::BATCH_ID);
+        $this->storage->method('tags')->willReturn(self::CACHE_TAGS);
+        $this->purgeCacheModel->method('sendPurgeRequest')->willReturn(true);
+
+        $this->flagManager->expects($this->exactly(2))->method('saveFlag')->with(
+            $this->logicalOr(
+                CacheDebounceEntries::FLAG_LAST_FLUSH_AT,
+                CacheDebounceEntries::FLAG_LAST_FLUSH_DURATION
+            )
+        );
+
+        $this->cacheDebounceEntries->flush();
+    }
+
+    public function testFlushDoesNotWriteLastFlushFlagsWhenPurgeRequestFails()
+    {
+        $this->storage->method('claim')->willReturn(self::BATCH_ID);
+        $this->storage->method('tags')->willReturn(self::CACHE_TAGS);
+        $this->purgeCacheModel->method('sendPurgeRequest')->willReturn(false);
+
+        $this->flagManager->expects($this->never())->method('saveFlag');
 
         $this->cacheDebounceEntries->flush();
     }
@@ -91,7 +135,8 @@ class EntriesTest extends TestCase
             $config,
             $this->purgeCacheModel,
             $this->storage,
-            $this->loggerInterface
+            $this->loggerInterface,
+            $this->flagManager
         );
 
         $this->storage->expects($this->never())->method('clear');
