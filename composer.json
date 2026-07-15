@@ -3,17 +3,45 @@
     "description": "Debounce FPC cache purges to a set schedule",
     "type": "magento2-module",
     "require": {
-      "php": "^7.0|^8.0"
+        "php": "^7.0|^8.0"
     },
-    "license": ["MIT"],
+    "license": [
+        "MIT"
+    ],
     "autoload": {
-      "files": ["registration.php"],
-      "psr-4": {
-        "SamJUK\\CacheDebounce\\": ""
-      }
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "SamJUK\\CacheDebounce\\": ""
+        }
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5",
         "phpstan/phpstan": "^1.12"
-    }
+    },
+    "homepage": "https://github.com/SamJUK/m2-module-cache-debounce",
+    "authors": [
+        {
+            "name": "Sam James",
+            "email": "sam@samdjames.uk",
+            "homepage": "https://www.samdjames.uk"
+        }
+    ],
+    "keywords": [
+        "magento2",
+        "magento 2",
+        "magento2-module",
+        "adobe-commerce",
+        "extension",
+        "cache",
+        "full-page-cache",
+        "fpc",
+        "varnish",
+        "cache-invalidation",
+        "debounce",
+        "throttle",
+        "performance",
+        "open-source"
+    ]
 }
