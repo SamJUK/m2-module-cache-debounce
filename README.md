@@ -22,7 +22,7 @@ A stock management integration was mocked by, setting a random QTY on a random S
 
 ## Installation
 ```sh
-composer require samjuk/m2-module-cache-debounce:@dev
+composer require samjuk/m2-module-cache-debounce
 php bin/magento setup:upgrade && php bin/magento cache:flush
 ```
 
@@ -37,7 +37,7 @@ php bin/magento config:set <path> <value>
 Option | Config Path | Default | Description
 --- | --- | --- | ---
 Enabled | `samjuk_cache_debounce/general/enabled` | `0` | Feature flag to toggle functionality of the module
-Flush Schedule | `samjuk_cache_debounce/cron/flush_schedule` | `*/5 0 0 0 0` | Cron schedule to run the scheduled flush
+Flush Schedule | `samjuk_cache_debounce/cron/flush_schedule` | `*/15 * * * *` | Cron schedule to run the scheduled flush
 
 ## Will this help my store?
 
