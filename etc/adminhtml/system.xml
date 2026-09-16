@@ -5,7 +5,7 @@
             <label>SamJUK</label>
         </tab>
 
-        <section id="samjuk_cache_debounce" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+        <section id="samjuk_cache_debounce" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
             <label>Cache Debounce</label>
             <tab>samjuk</tab>
             <resource>SamJUK_CacheDebounce::system_config</resource>
