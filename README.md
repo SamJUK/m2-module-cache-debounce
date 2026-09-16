@@ -39,6 +39,8 @@ Option | Config Path | Default | Description
 Enabled | `samjuk_cache_debounce/general/enabled` | `0` | Feature flag to toggle functionality of the module
 Flush Schedule | `samjuk_cache_debounce/cron/flush_schedule` | `*/5 0 0 0 0` | Cron schedule to run the scheduled flush
 
+The flush job runs in its own cron group, `samjuk_cache_debounce`, so a slow flush never holds up jobs in the `default` group. If your crontab runs `cron:run --group <name>` per group rather than a plain `cron:run`, add this group.
+
 ## Will this help my store?
 
 The performance improvement comes from improving cache performance by reducing the amount of cache purge requests in turn reducing system load.
