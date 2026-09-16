@@ -3,7 +3,7 @@
     "description": "Debounce FPC cache purges to a set schedule",
     "type": "magento2-module",
     "require": {
-        "php": "^7.0|^8.0"
+        "php": "^7.4 || ^8.0"
     },
     "license": [
         "MIT"
