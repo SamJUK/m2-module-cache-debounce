@@ -20,6 +20,8 @@
                 <label>Cron</label>
                 <field id="flush_schedule" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Flush Schedule</label>
+                    <comment>Standard 5-part cron expression, e.g. */15 * * * *</comment>
+                    <backend_model>SamJUK\CacheDebounce\Model\Config\Backend\CronExpression</backend_model>
                 </field>
             </group>
         </section>
