@@ -49,7 +49,9 @@ class CronExpression extends Value
         try {
             $schedule = $this->schedule->setCronExpr($value);
             foreach ($schedule->getCronExprArr() as $part) {
-                $schedule->matchCronExpression($part, 0);
+                foreach (explode(',', $part) as $component) {
+                    $schedule->matchCronExpression($component, 0);
+                }
             }
         } catch (CronException $e) {
             throw new LocalizedException(__('Flush Schedule is not a valid cron expression: "%1"', $value), $e);
