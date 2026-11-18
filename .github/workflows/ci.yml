@@ -6,64 +6,37 @@ on:
       - master
   pull_request:
     branches:
-      - '**'
+      - master
 
 jobs:
-  static-tests:
-    name: Validate Format
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
+  lint:
+    name: Linter
+    uses: samjuk/github-actions/.github/workflows/magento2-test-lint.yaml@master
 
-      - name: Validate Manifest
-        run: composer validate
+  static:
+    name: Static Analysis
+    uses: samjuk/github-actions/.github/workflows/magento2-test-static.yaml@master
+    needs: lint
 
-      - name: Validate XML format
-        run: sudo apt-get install libxml2-utils -y && find . -type f -name '*.xml' -exec xmllint --noout {} +
+  dependencies:
+    name: Dependencies
+    uses: samjuk/github-actions/.github/workflows/magento2-test-dependencies-module.yaml@master
+    needs: lint
 
-  tests:
-    name: Tests
-    needs: static-tests
+  supported-versions:
+    name: Supported Versions
+    uses: samjuk/github-actions/.github/workflows/magento-supported-versions.yaml@master
+
+  phpunit-tests-ghas:
+    name: PHPUnit Tests (GHAS)
+    uses: samjuk/github-actions/.github/workflows/magento2-test-phpunit-module-ghas.yaml@master
+    needs: [static, dependencies, supported-versions]
+    with:
+      magento_version: ${{ matrix.version }}
+      magento_distribution: ${{ matrix.distribution }}
+      run_unit_tests: true
+      run_integration_tests: true
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - PHP_VERSION: php84-fpm
-            MAGENTO_VERSION: 2.4.8-p3
-          - PHP_VERSION: php83-fpm
-            MAGENTO_VERSION: 2.4.7-p8
-          - PHP_VERSION: php82-fpm
-            MAGENTO_VERSION: 2.4.6-p13
-          - PHP_VERSION: php81-fpm
-            MAGENTO_VERSION: 2.4.5-p14
-          - PHP_VERSION: php81-fpm
-            MAGENTO_VERSION: 2.4.4-p13
-          - PHP_VERSION: php74-fpm
-            MAGENTO_VERSION: 2.4.3-p2   # @TODO: -p3 missing from upstream containers
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-
-      - name: Start Docker
-        run: docker run --detach --name magento-project-community-edition michielgerritsen/magento-project-community-edition:${{ matrix.PHP_VERSION }}-magento${{ matrix.MAGENTO_VERSION }}
-
-      - name: Upload our code into the docker container
-        run: docker cp $(pwd) magento-project-community-edition:/data/extensions/
-
-      - name: Install the extension in Magento
-        run: docker exec magento-project-community-edition composer require samjuk/m2-module-cache-debounce:@dev
-
-      - name: Run PHPStan
-        run: docker exec magento-project-community-edition bash -c "vendor/bin/phpstan analyse -c extensions/${{ github.event.repository.name }}/phpstan.neon extensions/${{ github.event.repository.name }}"
-
-      - name: Run PHPCS
-        run: docker exec magento-project-community-edition bash -c "vendor/bin/phpcs --standard=Magento2 --extensions=php,phtml -p extensions/${{ github.event.repository.name }} --severity=6"
-
-      - name: Run Unit Tests
-        run: docker exec magento-project-community-edition bash -c "vendor/bin/phpunit extensions/${{ github.event.repository.name }}/Test/Unit"
-
-      - name: Code Compilation Test
-        run: docker exec magento-project-community-edition bash -c "php bin/magento setup:di:compile"
-
-      - name: Run Integration Tests
-        run: docker exec magento-project-community-edition bash -c "php bin/magento deploy:mode:set developer && cd /data/dev/tests/integration/ && ../../../vendor/bin/phpunit"
+        include: ${{ fromJson(needs.supported-versions.outputs.versions) }}
