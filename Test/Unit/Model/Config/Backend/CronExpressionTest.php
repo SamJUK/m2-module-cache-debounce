@@ -18,6 +18,7 @@ class CronExpressionTest extends TestCase
     /**
      * @dataProvider listExpressions
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('listExpressions')]
     public function testRejectsWhenLaterListComponentFailsValidation(string $expression)
     {
         $schedule = $this->getMockBuilder(Schedule::class)
