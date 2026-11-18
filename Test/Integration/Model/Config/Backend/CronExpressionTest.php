@@ -21,6 +21,7 @@ class CronExpressionTest extends TestCase
     /**
      * @dataProvider validExpressions
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('validExpressions')]
     public function testAcceptsValidExpressions(string $expression)
     {
         $model = $this->backendModel($expression);
@@ -46,6 +47,7 @@ class CronExpressionTest extends TestCase
     /**
      * @dataProvider invalidExpressions
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('invalidExpressions')]
     public function testRejectsInvalidExpressions(string $expression)
     {
         $this->expectException(LocalizedException::class);
