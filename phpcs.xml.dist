@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<ruleset name="project">
+    <rule ref="./vendor/samjuk/dev-standards/php/magento/phpcs.xml"/>
+    <file>Console</file>
+    <file>Cron</file>
+    <file>Model</file>
+    <file>Plugin</file>
+    <file>Setup</file>
+    <file>Test</file>
+    <file>registration.php</file>
+</ruleset>

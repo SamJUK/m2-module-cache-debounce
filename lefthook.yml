@@ -1,0 +1,14 @@
+# Rules come from samjuk/dev-standards. Turn one off with `skip: true` on a job of the same name,
+# or configure it with env. See vendor/samjuk/dev-standards/README.md.
+templates:
+  dev-standards: vendor/samjuk/dev-standards
+
+extends:
+  - vendor/samjuk/dev-standards/lefthook/base.yml
+  - vendor/samjuk/dev-standards/lefthook/magento.yml
+
+# commit-msg:
+#   jobs:
+#     - name: task-id
+#       env:
+#         TASK_ID_PATTERN: 'SAM-[0-9]+'
