@@ -14,4 +14,4 @@ permissions:
 jobs:
   ci:
     name: CI
-    uses: samjuk/github-actions/.github/workflows/magento2-module.yaml@master
+    uses: samjuk/github-actions/.github/workflows/magento2-module.yaml@c64a99ecd100b285c80505fc8f5bcf94108153a7 # magento-module/v1.0.0
