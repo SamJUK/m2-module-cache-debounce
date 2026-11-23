@@ -13,5 +13,3 @@ parameters:
     # Magento\TestFramework only exists inside a Magento install; CI runs these in the PHPUnit job.
     excludePaths:
         - Test/Integration
-    # ponytail: level 1 keeps parity with the old config; dev-standards default is 6.
-    level: 1

@@ -4,6 +4,7 @@ namespace SamJUK\CacheDebounce\Test\Unit\Model;
 
 use Magento\CacheInvalidate\Model\PurgeCache;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use SamJUK\CacheDebounce\Model\Config as CacheDebounceConfig;
@@ -15,11 +16,15 @@ class EntriesTest extends TestCase
     private const BATCH_ID = 'batch-123';
     private const CACHE_TAGS = ['cat_c_1', 'cat_c_2', 'cat_c_p_1'];
 
+    /** @var CacheDebounceConfig&MockObject */
     private $cacheDebounceConfig;
+    /** @var PurgeCache&MockObject */
     private $purgeCacheModel;
+    /** @var QueueStorageInterface&MockObject */
     private $storage;
+    /** @var LoggerInterface&MockObject */
     private $loggerInterface;
-    private $cacheDebounceEntries;
+    private CacheDebounceEntries $cacheDebounceEntries;
 
     protected function setUp(): void
     {
@@ -35,7 +40,7 @@ class EntriesTest extends TestCase
         );
     }
 
-    public function testFlushDoesNothingWhenNothingIsClaimed()
+    public function testFlushDoesNothingWhenNothingIsClaimed(): void
     {
         $this->storage->method('activeBatch')->willReturn('');
         $this->storage->method('claim')->willReturn('');
@@ -45,7 +50,7 @@ class EntriesTest extends TestCase
         $this->cacheDebounceEntries->flush();
     }
 
-    public function testFlushPurgesClaimedTagsAndClearsBatch()
+    public function testFlushPurgesClaimedTagsAndClearsBatch(): void
     {
         $this->storage->method('activeBatch')->willReturn('');
         $this->storage->method('claim')->willReturn(self::BATCH_ID);
@@ -61,7 +66,7 @@ class EntriesTest extends TestCase
         $this->cacheDebounceEntries->flush();
     }
 
-    public function testFlushResumesAnAlreadyClaimedBatchInsteadOfClaimingNew()
+    public function testFlushResumesAnAlreadyClaimedBatchInsteadOfClaimingNew(): void
     {
         $this->storage->method('activeBatch')->willReturn(self::BATCH_ID);
         $this->storage->method('tags')->with(self::BATCH_ID)->willReturn(self::CACHE_TAGS);
@@ -74,7 +79,7 @@ class EntriesTest extends TestCase
         $this->cacheDebounceEntries->flush();
     }
 
-    public function testFlushReleasesBatchInsteadOfClearingWhenPurgeRequestFails()
+    public function testFlushReleasesBatchInsteadOfClearingWhenPurgeRequestFails(): void
     {
         $this->storage->method('activeBatch')->willReturn('');
         $this->storage->method('claim')->willReturn(self::BATCH_ID);
@@ -93,7 +98,7 @@ class EntriesTest extends TestCase
         $this->cacheDebounceEntries->flush();
     }
 
-    public function testFlushResetsDebounceFlagEvenWhenPurgeRequestThrows()
+    public function testFlushResetsDebounceFlagEvenWhenPurgeRequestThrows(): void
     {
         $scopeConfig = $this->createMock(ScopeConfigInterface::class);
         $scopeConfig->method('isSetFlag')->willReturn(true);
@@ -126,14 +131,14 @@ class EntriesTest extends TestCase
         $this->assertTrue($config->shouldDebouncePurgeRequest());
     }
 
-    public function testAddDelegatesToStorage()
+    public function testAddDelegatesToStorage(): void
     {
         $this->storage->expects($this->once())->method('add')->with(self::CACHE_TAGS);
 
         $this->cacheDebounceEntries->add(self::CACHE_TAGS);
     }
 
-    public function testAddWithEmptyTagsStillDelegatesToStorage()
+    public function testAddWithEmptyTagsStillDelegatesToStorage(): void
     {
         $this->storage->expects($this->once())->method('add')->with([]);
 

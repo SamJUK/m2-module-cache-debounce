@@ -25,6 +25,9 @@ class CronExpression extends Value
     /** @var Schedule $schedule Used as a parser only, nothing is saved through it */
     private $schedule;
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function __construct(
         Context $context,
         Registry $registry,

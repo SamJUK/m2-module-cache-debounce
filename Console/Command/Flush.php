@@ -12,7 +12,7 @@ use SamJUK\CacheDebounce\Model\Entries as CacheDebouncedEntries;
 
 class Flush extends Command
 {
-    private $cacheDebouncedEntries;
+    private CacheDebouncedEntries $cacheDebouncedEntries;
 
     /**
      * @param CacheDebouncedEntries $cacheDebouncedEntries

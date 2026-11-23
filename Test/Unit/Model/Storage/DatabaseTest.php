@@ -2,6 +2,7 @@
 
 namespace SamJUK\CacheDebounce\Test\Unit\Model\Storage;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use SamJUK\CacheDebounce\Model\Storage\Database;
 use Magento\Framework\App\ResourceConnection;
@@ -11,9 +12,11 @@ class DatabaseTest extends TestCase
 {
     private const TABLE_NAME = 'samjuk_cache_debounce';
 
+    /** @var AdapterInterface&MockObject */
     private $connection;
+    /** @var ResourceConnection&MockObject */
     private $resourceConnection;
-    private $storage;
+    private Database $storage;
 
     protected function setUp(): void
     {
@@ -36,14 +39,14 @@ class DatabaseTest extends TestCase
         $this->connection->method('select')->willReturn($select);
     }
 
-    public function testAddWithEmptyTagsDoesNotTouchConnection()
+    public function testAddWithEmptyTagsDoesNotTouchConnection(): void
     {
         $this->connection->expects($this->never())->method('insertArray');
 
         $this->storage->add([]);
     }
 
-    public function testAddInsertsTagsAsUnclaimedWithInsertIgnore()
+    public function testAddInsertsTagsAsUnclaimedWithInsertIgnore(): void
     {
         $this->stubSelect();
         $this->connection->method('fetchCol')->willReturn([]);
@@ -60,7 +63,7 @@ class DatabaseTest extends TestCase
         $this->storage->add(['cat_c_1', 'cat_c_2']);
     }
 
-    public function testAddFiltersOutNullAndEmptyTags()
+    public function testAddFiltersOutNullAndEmptyTags(): void
     {
         $this->stubSelect();
         $this->connection->method('fetchCol')->willReturn([]);
@@ -77,7 +80,7 @@ class DatabaseTest extends TestCase
         $this->storage->add(['cat_c_1', null, '']);
     }
 
-    public function testAddSkipsTagsAlreadyPending()
+    public function testAddSkipsTagsAlreadyPending(): void
     {
         $this->stubSelect();
         $this->connection->method('fetchCol')->willReturn(['cat_c_1']);
@@ -94,7 +97,7 @@ class DatabaseTest extends TestCase
         $this->storage->add(['cat_c_1', 'cat_c_2']);
     }
 
-    public function testAddInsertsNothingWhenEveryTagIsAlreadyPending()
+    public function testAddInsertsNothingWhenEveryTagIsAlreadyPending(): void
     {
         $this->stubSelect();
         $this->connection->method('fetchCol')->willReturn(['cat_c_1']);
@@ -104,14 +107,14 @@ class DatabaseTest extends TestCase
         $this->storage->add(['cat_c_1']);
     }
 
-    public function testClaimReturnsEmptyStringWhenNothingPending()
+    public function testClaimReturnsEmptyStringWhenNothingPending(): void
     {
         $this->connection->method('update')->willReturn(0);
 
         $this->assertSame('', $this->storage->claim());
     }
 
-    public function testClaimReturnsBatchIdWhenRowsClaimed()
+    public function testClaimReturnsBatchIdWhenRowsClaimed(): void
     {
         $this->connection->method('update')->willReturn(2);
 
@@ -121,7 +124,7 @@ class DatabaseTest extends TestCase
         $this->assertSame(32, strlen($batchId));
     }
 
-    public function testTagsSelectsScopedToBatchId()
+    public function testTagsSelectsScopedToBatchId(): void
     {
         $select = $this->createMock(\Magento\Framework\DB\Select::class);
         $select->method('from')->willReturn($select);
@@ -132,7 +135,7 @@ class DatabaseTest extends TestCase
         $this->assertSame(['cat_c_1'], $this->storage->tags('batch-123'));
     }
 
-    public function testClearDeletesOnlyThatBatch()
+    public function testClearDeletesOnlyThatBatch(): void
     {
         $this->connection->expects($this->once())
             ->method('delete')
@@ -141,7 +144,7 @@ class DatabaseTest extends TestCase
         $this->storage->clear('batch-123');
     }
 
-    public function testReleaseReQueuesBatchTagsAsUnclaimedThenClearsTheBatch()
+    public function testReleaseReQueuesBatchTagsAsUnclaimedThenClearsTheBatch(): void
     {
         $this->stubSelect();
         // First call is tags($batchId) reading the claimed batch; second is
@@ -163,7 +166,7 @@ class DatabaseTest extends TestCase
         $this->storage->release('batch-123');
     }
 
-    public function testActiveBatchReturnsEmptyStringWhenNothingClaimed()
+    public function testActiveBatchReturnsEmptyStringWhenNothingClaimed(): void
     {
         $select = $this->createMock(\Magento\Framework\DB\Select::class);
         $select->method('from')->willReturn($select);
@@ -175,7 +178,7 @@ class DatabaseTest extends TestCase
         $this->assertSame('', $this->storage->activeBatch());
     }
 
-    public function testActiveBatchReturnsIdOfAlreadyClaimedBatch()
+    public function testActiveBatchReturnsIdOfAlreadyClaimedBatch(): void
     {
         $select = $this->createMock(\Magento\Framework\DB\Select::class);
         $select->method('from')->willReturn($select);
