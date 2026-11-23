@@ -6,6 +6,7 @@ namespace SamJUK\CacheDebounce\Model\Storage;
 
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
+use Magento\Framework\DB\Adapter\Pdo\Mysql;
 
 class Database implements QueueStorageInterface
 {
@@ -46,7 +47,10 @@ class Database implements QueueStorageInterface
             $rows[] = [self::UNCLAIMED_BATCH_ID, $tag];
         }
 
-        $this->resourceConnection->getConnection()->insertArray(
+        // insertArray()'s strategy argument is on the MySQL adapter, not the interface.
+        /** @var Mysql $connection */
+        $connection = $this->resourceConnection->getConnection();
+        $connection->insertArray(
             $this->tableName,
             ['batch_id', 'tag'],
             $rows,
@@ -114,9 +118,8 @@ class Database implements QueueStorageInterface
             ->where('batch_id != ?', self::UNCLAIMED_BATCH_ID)
             ->limit(1);
 
-        $batchId = $connection->fetchOne($query);
-
-        return $batchId !== false ? (string)$batchId : '';
+        // fetchOne() returns false on no row, whatever its docblock says.
+        return (string)$connection->fetchOne($query);
     }
 
     private function quoteBatchId(string $batchId): string

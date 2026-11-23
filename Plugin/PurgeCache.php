@@ -29,7 +29,7 @@ class PurgeCache
      *
      * @param \Magento\CacheInvalidate\Model\PurgeCache $subject
      * @param callable $proceed
-     * @param array|string $tags
+     * @param string[]|string $tags
      * @return bool
      */
     public function aroundSendPurgeRequest(Subject $subject, callable $proceed, $tags) : bool

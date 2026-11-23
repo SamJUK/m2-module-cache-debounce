@@ -37,6 +37,8 @@ class Entries
 
     /**
      * Add new tags to the purge queue
+     *
+     * @param array<string|null> $tags
      */
     public function add(array $tags) : void
     {

@@ -8,7 +8,7 @@ use SamJUK\CacheDebounce\Model\Config as CacheDebounceConfig;
 
 class ConfigTest extends TestCase
 {
-    public function testIsModuleEnabled()
+    public function testIsModuleEnabled(): void
     {
         $scopeConfig = $this->createMock(ScopeConfigInterface::class);
         $config = new CacheDebounceConfig($scopeConfig);
@@ -18,7 +18,7 @@ class ConfigTest extends TestCase
         $this->assertTrue($config->isModuleEnabled());
     }
 
-    public function testShouldDebouncePurgeRequestDependsOnModuleEnableState()
+    public function testShouldDebouncePurgeRequestDependsOnModuleEnableState(): void
     {
         $scopeConfig = $this->createMock(ScopeConfigInterface::class);
         $config = new CacheDebounceConfig($scopeConfig);
@@ -28,7 +28,7 @@ class ConfigTest extends TestCase
         $this->assertTrue($config->shouldDebouncePurgeRequest());
     }
 
-    public function testShouldDebouncePurgeRequestEnabledFlag()
+    public function testShouldDebouncePurgeRequestEnabledFlag(): void
     {
         $scopeConfig = $this->createMock(ScopeConfigInterface::class);
         $config = new CacheDebounceConfig($scopeConfig);

@@ -8,6 +8,8 @@ interface QueueStorageInterface
 {
     /**
      * Queue tags for a future purge. Must be idempotent and no-op on empty.
+     *
+     * @param array<string|null> $tags
      */
     public function add(array $tags): void;
 
@@ -18,6 +20,8 @@ interface QueueStorageInterface
 
     /**
      * Read the tags belonging to a previously claimed batch.
+     *
+     * @return string[]
      */
     public function tags(string $batchId): array;
 

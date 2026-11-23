@@ -10,7 +10,7 @@ use Magento\CacheInvalidate\Model\PurgeCache as PurgeCacheModel;
 
 class PurgeCacheTest extends TestCase
 {
-    public function testPluginDebouncesPurgeRequest()
+    public function testPluginDebouncesPurgeRequest(): void
     {
         $purgeCacheModel = $this->createMock(PurgeCacheModel::class);
         $cacheDebounceConfig = $this->createMock(CacheDebounceConfig::class);
@@ -30,7 +30,7 @@ class PurgeCacheTest extends TestCase
         );
     }
 
-    public function testPluginSkipsDebouncePurgeRequest()
+    public function testPluginSkipsDebouncePurgeRequest(): void
     {
         $purgeCacheModel = $this->createMock(PurgeCacheModel::class);
         $cacheDebounceConfig = $this->createMock(CacheDebounceConfig::class);

@@ -20,11 +20,13 @@ class ClearQueueTable implements DataPatchInterface
         $this->moduleDataSetup = $moduleDataSetup;
     }
 
-    public function apply(): void
+    public function apply(): self
     {
         // DELETE not TRUNCATE: data patches run inside a transaction.
         $connection = $this->moduleDataSetup->getConnection();
         $connection->delete($this->moduleDataSetup->getTable('samjuk_cache_debounce'));
+
+        return $this;
     }
 
     public static function getDependencies(): array
