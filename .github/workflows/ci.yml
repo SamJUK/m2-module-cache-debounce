@@ -8,10 +8,14 @@ on:
     branches:
       - master
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   ci:
     name: CI
-    uses: samjuk/github-actions/.github/workflows/magento2-module.yaml@1a6b3f0e373b111d15b05726b76b3e0ca7429ced # magento-module/v1.0.2
+    uses: samjuk/github-actions/.github/workflows/magento2-module.yaml@7e9f3aa3e9ad108cfb0da3e1012d5dcf7e91ff0f # magento-module/v1.0.3
